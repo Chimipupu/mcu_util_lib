@@ -21,6 +21,11 @@ typedef uint64_t    reg_addr_t;
 typedef uint32_t    reg_addr_t;
 #endif
 
+typedef enum {
+    BIT_ORDER_8_BIT,
+    BIT_ORDER_16_BIT,
+    BIT_ORDER_32_BIT,
+} BIT_ORDER;
 // ---------------------------------------------------
 // レジスタの8/16/32bitでR/W
 
@@ -69,5 +74,12 @@ static inline void _ASM_NOP(void)
 {
     asm __volatile__("nop");
 }
+
+// ---------------------------------------------------
+// [API]
+void* mcu_util_reg_read(BIT_ORDER bit_order, reg_addr_t addr);
+void mcu_util_reg_write(BIT_ORDER bit_order, reg_addr_t addr, void *p_val);
+
+// ---------------------------------------------------
 
 #endif // MCU_UTIL_LIB_H

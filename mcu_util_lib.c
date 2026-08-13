@@ -20,9 +20,68 @@
 #define DEBUG_MCU_UTIL_LIB
 
 // ---------------------------------------------------
+// [API]
+
+void* mcu_util_reg_read(BIT_ORDER bit_order, reg_addr_t addr)
+{
+    uint8_t tmp_u8;
+    uint16_t tmp_u16;
+    uint32_t tmp_u32;
+    void *p_result = NULL;
+
+    switch (bit_order)
+    {
+        case BIT_ORDER_8_BIT:
+            tmp_u8 = REG_READ_BYTE(addr);
+            p_result = &tmp_u8;
+            break;
+
+        case BIT_ORDER_16_BIT:
+            tmp_u16 = REG_READ_WORD(addr);
+            p_result = &tmp_u16;
+            break;
+
+        case BIT_ORDER_32_BIT:
+        default:
+            tmp_u32 = REG_READ_DWORD(addr);
+            p_result = &tmp_u32;
+            break;
+    }
+
+    return p_result;
+}
+
+void mcu_util_reg_write(BIT_ORDER bit_order, reg_addr_t addr, void *p_val)
+{
+    uint8_t tmp_u8;
+    uint16_t tmp_u16;
+    uint32_t tmp_u32;
+
+    switch (bit_order)
+    {
+        case BIT_ORDER_8_BIT:
+            tmp_u8 = *(uint8_t *)p_val;
+            REG_WRITE_BYTE(addr, tmp_u8);
+            break;
+
+        case BIT_ORDER_16_BIT:
+            tmp_u16 = *(uint16_t *)p_val;
+            REG_WRITE_WORD(addr, tmp_u16);
+            break;
+
+        case BIT_ORDER_32_BIT:
+        default:
+            tmp_u32 = *(uint32_t *)p_val;
+            REG_WRITE_DWORD(addr, tmp_u32);
+            break;
+    }
+}
+
+// ---------------------------------------------------
+// [DEBUG]
 
 #ifdef DEBUG_MCU_UTIL_LIB
-#define DEBUG_PRINT(fmt, ...) printf("[DEBUG] " fmt "\n", ##__VA_ARGS__)
+#define DEBUG_PRINT(fmt, ...)    printf("[DEBUG] " fmt "\n", ##__VA_ARGS__)
 
 #if defined(__GNUC__) && (__SIZEOF_POINTER__ == 8)
 int main(void)
@@ -43,10 +102,22 @@ int test_util(void)
     DEBUG_PRINT(" MCU Util Library Debug Test");
     DEBUG_PRINT("====================================================");
 
-    //---------------------------------------------------
+    // ---------------------------------------------------
     // [1] レジスタの8/16/32bit読み出し関数のテスト
     DEBUG_PRINT("[1] READ TEST");
-    test_reg = 0x12345678; // リトルエンディアン環境では 78 56 34 12 として配置される
+    test_reg = 0x12345678;
+
+#if 1
+    tmp_u8 = *(uint8_t *)mcu_util_reg_read(BIT_ORDER_8_BIT, (reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 8bit Read Test : 0x%02X", tmp_u8);
+
+    tmp_u16 = *(uint16_t *)mcu_util_reg_read(BIT_ORDER_16_BIT, (reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 16bit Read Test: 0x%04X", tmp_u16);
+
+    tmp_u32 = *(uint32_t *)mcu_util_reg_read(BIT_ORDER_32_BIT, (reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 32bit Read Test: 0x%08X", tmp_u32);
+    //---------------------------------------------------
+#else
     DEBUG_PRINT("Initial Reg Value : 0x%08X", test_reg);
 
     tmp_u8 = REG_READ_BYTE((reg_addr_t)p_test_reg);
@@ -57,12 +128,28 @@ int test_util(void)
 
     tmp_u32 = REG_READ_DWORD((reg_addr_t)p_test_reg);
     DEBUG_PRINT(" -> 32bit Read     : 0x%08X", tmp_u32);
+#endif
     DEBUG_PRINT("----------------------------------------------------");
-
     //---------------------------------------------------
     // [2] レジスタの8/16/32bit書き込み関数のテスト
     DEBUG_PRINT("[2] WRITE TEST");
 
+#if 1
+    test_reg = 0x00000000;
+    tmp_u8 = 0xAA;
+    mcu_util_reg_write(BIT_ORDER_8_BIT, (reg_addr_t)p_test_reg, &tmp_u8);
+    DEBUG_PRINT(" -> 8bit Write (0xAA)       : 0x%08X", test_reg);
+
+    test_reg = 0x00000000;
+    tmp_u16 = 0xBBBB;
+    mcu_util_reg_write(BIT_ORDER_16_BIT, (reg_addr_t)p_test_reg, &tmp_u16);
+    DEBUG_PRINT(" -> 16bit Write (0xBBBB)    : 0x%08X", test_reg);
+
+    test_reg = 0x00000000;
+    tmp_u32 = 0xCCCCCCCC;
+    mcu_util_reg_write(BIT_ORDER_32_BIT, (reg_addr_t)p_test_reg, &tmp_u32);
+    DEBUG_PRINT(" -> 32bit Write (0xCCCCCCCC): 0x%08X", test_reg);
+#else
     test_reg = 0x00000000;
     REG_WRITE_BYTE((reg_addr_t)p_test_reg, 0xAA);
     DEBUG_PRINT(" -> 8bit Write (0xAA)       : 0x%08X", test_reg);
@@ -74,8 +161,8 @@ int test_util(void)
     test_reg = 0x00000000;
     REG_WRITE_DWORD((reg_addr_t)p_test_reg, 0xCCCCCCCC);
     DEBUG_PRINT(" -> 32bit Write (0xCCCCCCCC): 0x%08X", test_reg);
+#endif
     DEBUG_PRINT("----------------------------------------------------");
-
     //---------------------------------------------------
     // [3] レジスタのビット操作マクロのテスト
     DEBUG_PRINT("[3] BIT MACRO TEST");
