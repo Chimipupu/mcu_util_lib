@@ -14,7 +14,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 // ---------------------------------------------------
 // デバッグ用コンパイルスイッチ
@@ -25,57 +24,83 @@
 #ifdef DEBUG_MCU_UTIL_LIB
 #define DEBUG_PRINT(fmt, ...) printf("[DEBUG] " fmt "\n", ##__VA_ARGS__)
 
+#if defined(__GNUC__) && (__SIZEOF_POINTER__ == 8)
 int main(void)
+#else
+int test_util(void)
+#endif
 {
-    uint32_t test_reg = 0x12345678;
+    uint32_t test_reg;
+    uint32_t *p_test_reg;
     uint8_t tmp_u8;
     uint16_t tmp_u16;
     uint32_t tmp_u32;
+    bool is_chk;
 
+    p_test_reg = &test_reg;
+
+    DEBUG_PRINT("====================================================");
+    DEBUG_PRINT(" MCU Util Library Debug Test");
+    DEBUG_PRINT("====================================================");
+
+    //---------------------------------------------------
+    // [1] レジスタの8/16/32bit読み出し関数のテスト
+    DEBUG_PRINT("[1] READ TEST");
+    test_reg = 0x12345678; // リトルエンディアン環境では 78 56 34 12 として配置される
+    DEBUG_PRINT("Initial Reg Value : 0x%08X", test_reg);
+
+    tmp_u8 = REG_READ_BYTE((reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 8bit Read      : 0x%02X", tmp_u8);
+
+    tmp_u16 = REG_READ_WORD((reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 16bit Read     : 0x%04X", tmp_u16);
+
+    tmp_u32 = REG_READ_DWORD((reg_addr_t)p_test_reg);
+    DEBUG_PRINT(" -> 32bit Read     : 0x%08X", tmp_u32);
     DEBUG_PRINT("----------------------------------------------------");
-    DEBUG_PRINT("MCU Util Library Debug Test");
+
+    //---------------------------------------------------
+    // [2] レジスタの8/16/32bit書き込み関数のテスト
+    DEBUG_PRINT("[2] WRITE TEST");
+
+    test_reg = 0x00000000;
+    REG_WRITE_BYTE((reg_addr_t)p_test_reg, 0xAA);
+    DEBUG_PRINT(" -> 8bit Write (0xAA)       : 0x%08X", test_reg);
+
+    test_reg = 0x00000000;
+    REG_WRITE_WORD((reg_addr_t)p_test_reg, 0xBBBB);
+    DEBUG_PRINT(" -> 16bit Write (0xBBBB)    : 0x%08X", test_reg);
+
+    test_reg = 0x00000000;
+    REG_WRITE_DWORD((reg_addr_t)p_test_reg, 0xCCCCCCCC);
+    DEBUG_PRINT(" -> 32bit Write (0xCCCCCCCC): 0x%08X", test_reg);
     DEBUG_PRINT("----------------------------------------------------");
+
     //---------------------------------------------------
-    // レジスタの8/16/32bit読み出し関数のテスト
-    tmp_u8 = REG_READ_BYTE((uint32_t)&test_reg);
-    DEBUG_PRINT("Reg 8bit Func Test: Addr=0x%08X, Value=0x%02X", (uint32_t)&test_reg, tmp_u8);
+    // [3] レジスタのビット操作マクロのテスト
+    DEBUG_PRINT("[3] BIT MACRO TEST");
 
-    tmp_u16 = REG_READ_HALFWORD((uint32_t)&test_reg);
-    DEBUG_PRINT("Reg 16bit Func Test: Addr=0x%08X, Value=0x%04X", (uint32_t)&test_reg, tmp_u16);
-
-    tmp_u32 = REG_READ_WORD((uint32_t)&test_reg);
-    DEBUG_PRINT("Reg 32bit Func Test: Addr=0x%08X, Value=0x%08X", (uint32_t)&test_reg, tmp_u32);
-    //---------------------------------------------------
-    // レジスタの8/16/32bit書き込み関数のテスト
-    REG_WRITE_BYTE((uint32_t)&test_reg, 0xAA);
-    DEBUG_PRINT("Reg 8bit Write Func Test: Addr=0x%08X, Value=0x%02X", (uint32_t)&test_reg, test_reg);
-
-    REG_WRITE_HALFWORD((uint32_t)&test_reg, 0xBBBB);
-    DEBUG_PRINT("Reg 16bit Write Func Test: Addr=0x%08X, Value=0x%04X", (uint32_t)&test_reg, test_reg);
-
-    REG_WRITE_WORD((uint32_t)&test_reg, 0xCCCCCCCC);
-    DEBUG_PRINT("Reg 32bit Write Func Test: Addr=0x%08X, Value=0x%08X", (uint32_t)&test_reg, test_reg);
-    //---------------------------------------------------
-    // レジスタのビット操作マクロのテスト
+    test_reg = 0x00000000;
     REG_BIT_SET(test_reg, 0);
-    DEBUG_PRINT("Reg Bit Set Macro Test: Addr=0x%08X, Value=0x%08X", (uint32_t)&test_reg, test_reg);
+    DEBUG_PRINT(" -> Bit 0 SET              : 0x%08X", test_reg);
 
+    test_reg = 0xFFFFFFFF;
     REG_BIT_CLR(test_reg, 1);
-    DEBUG_PRINT("Reg Bit Clear Macro Test: Addr=0x%08X, Value=0x%08X", (uint32_t)&test_reg, test_reg);
+    DEBUG_PRINT(" -> Bit 1 CLR              : 0x%08X", test_reg);
 
+    test_reg = 0x00000000;
     REG_BIT_TGL(test_reg, 2);
-    DEBUG_PRINT("Reg Bit Toggle Macro Test: Addr=0x%08X, Value=0x%08X", (uint32_t)&test_reg, test_reg);
+    DEBUG_PRINT(" -> Bit 2 TGL (0->1)       : 0x%08X", test_reg);
+    REG_BIT_TGL(test_reg, 2);
+    DEBUG_PRINT(" -> Bit 2 TGL (1->0)       : 0x%08X", test_reg);
 
-    if (REG_BIT_CHK(test_reg, 3))
-    {
-        DEBUG_PRINT("Reg Bit Check Macro Test: Addr=0x%08X, Bit 3 is SET", (uint32_t)&test_reg);
-    }
-    else
-    {
-        DEBUG_PRINT("Reg Bit Check Macro Test: Addr=0x%08X, Bit 3 is CLEAR", (uint32_t)&test_reg);
-    }
-    //---------------------------------------------------
-    DEBUG_PRINT("----------------------------------------------------");
+    test_reg = 0x00000008; // Bit 3が立っている状態
+    is_chk = (REG_BIT_CHK(test_reg, 3) != 0);
+    DEBUG_PRINT(" -> Bit 3 CHK (Expected 1) : %d", is_chk);
+
+    is_chk = (REG_BIT_CHK(test_reg, 4) != 0);
+    DEBUG_PRINT(" -> Bit 4 CHK (Expected 0) : %d", is_chk);
+    DEBUG_PRINT("====================================================");
 
     return 0;
 }
