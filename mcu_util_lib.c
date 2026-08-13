@@ -22,7 +22,7 @@
 // ---------------------------------------------------
 // [API]
 
-uint32_t mcu_utilREG_read(BIT_ORDER bit_order, reg_addr_t addr)
+uint32_t mcu_util_reg_read(BIT_ORDER bit_order, reg_addr_t addr)
 {
     uint32_t ret_val = 0;
 
@@ -45,7 +45,7 @@ uint32_t mcu_utilREG_read(BIT_ORDER bit_order, reg_addr_t addr)
     return ret_val;
 }
 
-void mcu_utilREG_write(BIT_ORDER bit_order, reg_addr_t addr, uint32_t val)
+void mcu_util_reg_write(BIT_ORDER bit_order, reg_addr_t addr, uint32_t val)
 {
     switch (bit_order)
     {
@@ -76,14 +76,14 @@ int main(void)
 int test_util(void)
 #endif
 {
-    uint32_t testREG;
-    uint32_t *p_testREG;
+    uint32_t test_reg;
+    uint32_t *p_test_reg;
     uint8_t tmp_u8;
     uint16_t tmp_u16;
     uint32_t tmp_u32;
     bool is_chk;
 
-    p_testREG = &testREG;
+    p_test_reg = &test_reg;
 
     DEBUG_PRINT("====================================================");
     DEBUG_PRINT(" MCU Util Library Debug Test");
@@ -92,57 +92,57 @@ int test_util(void)
     // ---------------------------------------------------
     // [1] レジスタの8/16/32bit読み出し関数のテスト
     DEBUG_PRINT("[1] READ TEST");
-    testREG = 0x12345678;
+    test_reg = 0x12345678;
 
-    tmp_u8 = (uint8_t)mcu_utilREG_read(BIT_ORDER_8_BIT, (reg_addr_t)p_testREG);
+    tmp_u8 = (uint8_t)mcu_util_reg_read(BIT_ORDER_8_BIT, (reg_addr_t)p_test_reg);
     DEBUG_PRINT(" -> 8bit Read Test : 0x%02X", tmp_u8);
 
-    tmp_u16 = (uint16_t)mcu_utilREG_read(BIT_ORDER_16_BIT, (reg_addr_t)p_testREG);
+    tmp_u16 = (uint16_t)mcu_util_reg_read(BIT_ORDER_16_BIT, (reg_addr_t)p_test_reg);
     DEBUG_PRINT(" -> 16bit Read Test: 0x%04X", tmp_u16);
 
-    tmp_u32 = mcu_utilREG_read(BIT_ORDER_32_BIT, (reg_addr_t)p_testREG);
+    tmp_u32 = mcu_util_reg_read(BIT_ORDER_32_BIT, (reg_addr_t)p_test_reg);
     DEBUG_PRINT(" -> 32bit Read Test: 0x%08X", tmp_u32);
     DEBUG_PRINT("----------------------------------------------------");
     //---------------------------------------------------
     // [2] レジスタの8/16/32bit書き込み関数のテスト
     DEBUG_PRINT("[2] WRITE TEST");
 
-    testREG = 0x00000000;
-    mcu_utilREG_write(BIT_ORDER_8_BIT, (reg_addr_t)p_testREG, 0xAA);
-    DEBUG_PRINT(" -> 8bit Write (0xAA)       : 0x%08X", testREG);
+    test_reg = 0x00000000;
+    mcu_util_reg_write(BIT_ORDER_8_BIT, (reg_addr_t)p_test_reg, 0xAA);
+    DEBUG_PRINT(" -> 8bit Write (0xAA)       : 0x%08X", test_reg);
 
-    testREG = 0x00000000;
-    mcu_utilREG_write(BIT_ORDER_16_BIT, (reg_addr_t)p_testREG, 0xBBBB);
-    DEBUG_PRINT(" -> 16bit Write (0xBBBB)    : 0x%08X", testREG);
+    test_reg = 0x00000000;
+    mcu_util_reg_write(BIT_ORDER_16_BIT, (reg_addr_t)p_test_reg, 0xBBBB);
+    DEBUG_PRINT(" -> 16bit Write (0xBBBB)    : 0x%08X", test_reg);
 
-    testREG = 0x00000000;
-    mcu_utilREG_write(BIT_ORDER_32_BIT, (reg_addr_t)p_testREG, 0xCCCCCCCC);
-    DEBUG_PRINT(" -> 32bit Write (0xCCCCCCCC): 0x%08X", testREG);
+    test_reg = 0x00000000;
+    mcu_util_reg_write(BIT_ORDER_32_BIT, (reg_addr_t)p_test_reg, 0xCCCCCCCC);
+    DEBUG_PRINT(" -> 32bit Write (0xCCCCCCCC): 0x%08X", test_reg);
 
     DEBUG_PRINT("----------------------------------------------------");
     //---------------------------------------------------
     // [3] レジスタのビット操作マクロのテスト
     DEBUG_PRINT("[3] BIT MACRO TEST");
 
-    testREG = 0x00000000;
-    REG_BIT_SET(testREG, 0);
-    DEBUG_PRINT(" -> Bit 0 SET              : 0x%08X", testREG);
+    test_reg = 0x00000000;
+    REG_BIT_SET(test_reg, 0);
+    DEBUG_PRINT(" -> Bit 0 SET              : 0x%08X", test_reg);
 
-    testREG = 0xFFFFFFFF;
-    REG_BIT_CLR(testREG, 1);
-    DEBUG_PRINT(" -> Bit 1 CLR              : 0x%08X", testREG);
+    test_reg = 0xFFFFFFFF;
+    REG_BIT_CLR(test_reg, 1);
+    DEBUG_PRINT(" -> Bit 1 CLR              : 0x%08X", test_reg);
 
-    testREG = 0x00000000;
-    REG_BIT_TGL(testREG, 2);
-    DEBUG_PRINT(" -> Bit 2 TGL (0->1)       : 0x%08X", testREG);
-    REG_BIT_TGL(testREG, 2);
-    DEBUG_PRINT(" -> Bit 2 TGL (1->0)       : 0x%08X", testREG);
+    test_reg = 0x00000000;
+    REG_BIT_TGL(test_reg, 2);
+    DEBUG_PRINT(" -> Bit 2 TGL (0->1)       : 0x%08X", test_reg);
+    REG_BIT_TGL(test_reg, 2);
+    DEBUG_PRINT(" -> Bit 2 TGL (1->0)       : 0x%08X", test_reg);
 
-    testREG = 0x00000008; // Bit 3が立っている状態
-    is_chk = (REG_BIT_CHK(testREG, 3) != 0);
+    test_reg = 0x00000008; // Bit 3が立っている状態
+    is_chk = (REG_BIT_CHK(test_reg, 3) != 0);
     DEBUG_PRINT(" -> Bit 3 CHK (Expected 1) : %d", is_chk);
 
-    is_chk = (REG_BIT_CHK(testREG, 4) != 0);
+    is_chk = (REG_BIT_CHK(test_reg, 4) != 0);
     DEBUG_PRINT(" -> Bit 4 CHK (Expected 0) : %d", is_chk);
     DEBUG_PRINT("====================================================");
 
