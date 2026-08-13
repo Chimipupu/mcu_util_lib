@@ -77,8 +77,8 @@ static inline void _ASM_NOP(void)
 
 // ---------------------------------------------------
 // [API]
-void* mcu_util_reg_read(BIT_ORDER bit_order, reg_addr_t addr);
-void mcu_util_reg_write(BIT_ORDER bit_order, reg_addr_t addr, void *p_val);
+uint32_t mcu_util_reg_read(BIT_ORDER bit_order, reg_addr_t addr);
+void mcu_util_reg_write(BIT_ORDER bit_order, reg_addr_t addr, uint32_t val);
 
 // ---------------------------------------------------
 
